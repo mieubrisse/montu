@@ -10,6 +10,8 @@ plugins {
     // Apply the java plugin to add support for Java
     id 'java'
 
+    id 'idea'
+
     // Apply the application plugin to add support for building a CLI application.
     id 'application'
 }
@@ -24,11 +26,19 @@ dependencies {
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:28.2-jre'
 
+    implementation "com.googlecode.lanterna:lanterna:${lanternaVersion}"
+    implementation "com.atlassian.commonmark:commonmark:${commonmarkVersion}"
+    implementation "com.atlassian.commonmark:commonmark-ext-task-list-items:${commonmarkVersion}"
+
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+    implementation "ch.qos.logback:logback-core:${logbackVersion}"
+    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
+
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 }
 
 application {
     // Define the main class for the application.
-    mainClassName = 'com.strangegrotto.App'
+    mainClassName = 'com.strangegrotto.montu.App'
 }
