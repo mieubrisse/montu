@@ -10,6 +10,8 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import com.strangegrotto.montu.render.ChecklistItemInteractable;
+import com.strangegrotto.montu.secondparse.ParseNodeToTextVisitor;
+import com.strangegrotto.montu.secondparse.SecondParseVisitor;
 import org.commonmark.ext.task.list.items.TaskListItemsExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
@@ -49,6 +51,24 @@ public class App {
         }
 
         parseResult.accept(new DebuggingVisitor());
+
+
+        var secondParseVisitor = new SecondParseVisitor();
+        parseResult.accept(secondParseVisitor);
+        var rootParseNodeOpt = secondParseVisitor.getRootOpt();
+        if (!rootParseNodeOpt.isPresent()) {
+            log.error("The second parse visitor didn't set the root node during parsing; this is a code bug " +
+                    "indicating that it wasn't called on the Document root");
+            System.exit(FAILURE_EXIT_CODE);
+            return;
+        }
+        var rootParseNode = rootParseNodeOpt.get();
+
+        for (var line : rootParseNode.getLines()) {
+            System.out.print(line);
+        }
+
+        // TODO DEBUGGING
         System.exit(FAILURE_EXIT_CODE);
 
         // Setup terminal and screen layers

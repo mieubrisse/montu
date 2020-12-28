@@ -1,6 +1,5 @@
 package com.strangegrotto.montu.secondparse;
 
-import com.strangegrotto.montu.ChecklistParseException;
 import com.strangegrotto.montu.secondparse.output.*;
 import com.strangegrotto.montu.secondparse.listmarkers.BulletListMarkerSupplier;
 import com.strangegrotto.montu.secondparse.listmarkers.ListMarkerSupplier;
@@ -12,24 +11,47 @@ import java.util.List;
 import java.util.Optional;
 
 public class SecondParseVisitor extends AbstractVisitor {
-    private ContainerParseNode parent;
+    private Optional<ParseNode> rootOpt;
+
+    private Optional<ContainerParseNode> parentOpt;
+
+    // How deeply nested we are when we visit ListItems
+    private int listNestLevel;
 
     // When processing a list, this will be non-empty and list items will be able to consume it
     //  to get the marker that they should use when rendering themselves
     private Optional<ListMarkerSupplier> listMarkerSupplierOpt;
 
-    public SecondParseVisitor(List<ParseNode> rootNodes) {
-        this.parent = new RootParseNode();
+    public SecondParseVisitor() {
+        this.rootOpt = Optional.empty();
+        this.parentOpt = Optional.empty();
         this.listMarkerSupplierOpt = Optional.empty();
+
+        // We start this at -1 so that the first BulletList/OrderedLists (the root-level ones) will get nest level 0 and 0 indentation
+        this.listNestLevel = -1;
+    }
+
+    public Optional<ParseNode> getRootOpt() {
+        return this.rootOpt;
+    }
+
+    @Override
+    public void visit(Document document) {
+        var rootNode = new RootParseNode();
+        this.rootOpt = Optional.of(rootNode);
+        this.parentOpt = Optional.of(rootNode);
+        this.visitChildren(document);
     }
 
     @Override
     public void visit(BulletList bulletList) {
         var currentListMarkerSupplier = this.listMarkerSupplierOpt;
 
+        this.listNestLevel++;
         this.listMarkerSupplierOpt = Optional.of(new BulletListMarkerSupplier(bulletList.getBulletMarker()));
         this.visitChildren(bulletList);
 
+        this.listNestLevel--;
         this.listMarkerSupplierOpt = currentListMarkerSupplier;
     }
 
@@ -37,6 +59,7 @@ public class SecondParseVisitor extends AbstractVisitor {
     public void visit(OrderedList orderedList) {
         var currentListMarkerSupplierOpt = this.listMarkerSupplierOpt;
 
+        this.listNestLevel++;
         this.listMarkerSupplierOpt = Optional.of(
                 new OrderedListMarkerSupplier(
                         orderedList.getStartNumber(),
@@ -45,34 +68,39 @@ public class SecondParseVisitor extends AbstractVisitor {
         );
         this.visitChildren(orderedList);
 
+        this.listNestLevel--;
         this.listMarkerSupplierOpt = currentListMarkerSupplierOpt;
     }
 
 
     @Override
     public void visit(ListItem listItem) {
+        var parent = this.parentOpt.orElseThrow(() -> new SecondParseException(
+                "No parent node exists, indicating this visitor wasn't called on the " +
+                    "Document root; this is a code bug"
+        ));
+
         // TODO Maybe remove this requirement and just call all list items checklist items?
         var firstChild = listItem.getFirstChild();
         if (!(firstChild instanceof TaskListItemMarker)) {
-            throw new ChecklistParseException("Found a list item that wasn't a checklist item");
+            throw new SecondParseException("Found a list item that wasn't a checklist item");
         }
 
-        if (!this.listMarkerSupplierOpt.isPresent()) {
-            throw new ChecklistParseException("Encountered a list item and so Expected to have a list marker provider, " +
-                    "but none was found; this is a code bug");
-        }
-        var listMarkerSupplier = listMarkerSupplierOpt.get();
+        var listMarkerSupplier = listMarkerSupplierOpt.orElseThrow(() -> new SecondParseException(
+                "Encountered a list item and so expected to have a list marker provider, " +
+                    "but none was found; this is a code bug"
+        ));
         var listMarker = listMarkerSupplier.get();
 
-        var newNode = new ChecklistItemParseNode(listMarker);
-        this.parent.addChild(newNode);
+        var newNode = new ChecklistItemParseNode(this.listNestLevel, listMarker);
+        parent.addChecklistItemChild(newNode);
 
-        var currentParent = this.parent;
+        var currentParentOpt = this.parentOpt;
 
-        this.parent = newNode;
+        this.parentOpt = Optional.of(newNode);
         this.visitChildren(listItem);
 
-        this.parent = currentParent;
+        this.parentOpt = currentParentOpt;
     }
 
     // =============================================================================================================================
@@ -80,42 +108,50 @@ public class SecondParseVisitor extends AbstractVisitor {
     // =============================================================================================================================
     @Override
     public void visit(Paragraph paragraph) {
-        this.parent.addChild(new BlockParseNode(paragraph));
+        addBlockToParentIfPresent(paragraph);
     }
 
     @Override
     public void visit(Heading heading) {
-        this.parent.addChild(new BlockParseNode(heading));
+        addBlockToParentIfPresent(heading);
     }
 
     @Override
     public void visit(BlockQuote blockQuote) {
-        this.parent.addChild(new BlockParseNode(blockQuote));
+        addBlockToParentIfPresent(blockQuote);
     }
 
     @Override
     public void visit(ThematicBreak thematicBreak) {
-        this.parent.addChild(new BlockParseNode(thematicBreak));
+        addBlockToParentIfPresent(thematicBreak);
     }
 
     @Override
     public void visit(HtmlBlock htmlBlock) {
-        this.parent.addChild(new BlockParseNode(htmlBlock));
+        addBlockToParentIfPresent(htmlBlock);
     }
 
     @Override
     public void visit(IndentedCodeBlock indentedCodeBlock) {
-        this.parent.addChild(new BlockParseNode(indentedCodeBlock));
+        addBlockToParentIfPresent(indentedCodeBlock);
     }
 
     @Override
     public void visit(FencedCodeBlock fencedCodeBlock) {
-        this.parent.addChild(new BlockParseNode(fencedCodeBlock));
+        addBlockToParentIfPresent(fencedCodeBlock);
     }
 
     @Override
     public void visit(CustomBlock customBlock) {
-        this.parent.addChild(new BlockParseNode(customBlock));
+        addBlockToParentIfPresent(customBlock);
+    }
+
+    private void addBlockToParentIfPresent(Block blockNode) {
+        var parent = this.parentOpt.orElseThrow(() -> new SecondParseException(
+                "No parent node exists, indicating this visitor wasn't called on the " +
+                    "Document root; this is a code bug"
+        ));
+        parent.addBlockChild(new BlockParseNode(blockNode));
     }
 
     // =============================================================================================================================
@@ -126,56 +162,56 @@ public class SecondParseVisitor extends AbstractVisitor {
         if (customNode instanceof TaskListItemMarker) {
             return;
         }
-        throw new ChecklistParseException("Intermediate parser should never see custom nodes outside of TaskListItemMarker");
+        throw new SecondParseException("Intermediate parser should never see custom nodes outside of TaskListItemMarker");
     }
 
     @Override
     public void visit(Code code) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare Code text");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare Code text");
     }
 
     @Override
     public void visit(Emphasis emphasis) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare Emphasis nodes");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare Emphasis nodes");
     }
 
     @Override
     public void visit(HardLineBreak hardLineBreak) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare HardLineBreak nodes");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare HardLineBreak nodes");
     }
 
     @Override
     public void visit(HtmlInline htmlInline) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare inline HTML");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare inline HTML");
     }
 
     @Override
     public void visit(Image image) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare images");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare images");
     }
 
     @Override
     public void visit(Link link) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare Links");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare Links");
     }
 
     @Override
     public void visit(SoftLineBreak softLineBreak) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare soft line breaks");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare soft line breaks");
     }
 
     @Override
     public void visit(StrongEmphasis strongEmphasis) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare StrongEmphasis");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare StrongEmphasis");
     }
 
     @Override
     public void visit(Text text) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare Text");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare Text");
     }
 
     @Override
     public void visit(LinkReferenceDefinition linkReferenceDefinition) {
-        throw new ChecklistParseException("Intermediate parser shouldn't encounter any bare link reference definitions");
+        throw new SecondParseException("Intermediate parser shouldn't encounter any bare link reference definitions");
     }
 }

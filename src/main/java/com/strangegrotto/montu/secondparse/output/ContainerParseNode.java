@@ -1,18 +1,13 @@
 package com.strangegrotto.montu.secondparse.output;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ContainerParseNode implements ParseNode {
+public interface ContainerParseNode extends ParseNode {
     // private final List<>
 
-    private final List<ParseNode> children;
+    void addBlockChild(BlockParseNode node);
 
-    public ContainerParseNode() {
-        this.children = new ArrayList<>();
-    }
-
-    public void addChild(ParseNode node) {
-        this.children.add(node);
-    }
+    void addChecklistItemChild(ChecklistItemParseNode node);
 }
