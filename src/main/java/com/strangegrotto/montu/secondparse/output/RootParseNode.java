@@ -1,5 +1,6 @@
 package com.strangegrotto.montu.secondparse.output;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,12 @@ public class RootParseNode implements ContainerParseNode {
             }
         }
         return result;
+    }
+
+    @Override
+    public List<Component> getComponents() {
+        // TODO
+        return null;
     }
 
     @Override

@@ -9,9 +9,10 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
-import com.strangegrotto.montu.render.ChecklistItemInteractable;
-import com.strangegrotto.montu.secondparse.ParseNodeToTextVisitor;
-import com.strangegrotto.montu.secondparse.SecondParseVisitor;
+import com.strangegrotto.montu.view.BulletListMarker;
+import com.strangegrotto.montu.view.ChecklistItemInteractable;
+import com.strangegrotto.montu.view.OrdenalListMarker;
+import com.strangegrotto.montu.view.TextComponent;
 import org.commonmark.ext.task.list.items.TaskListItemsExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 
@@ -53,6 +55,7 @@ public class App {
         parseResult.accept(new DebuggingVisitor());
 
 
+        /*
         var secondParseVisitor = new SecondParseVisitor();
         parseResult.accept(secondParseVisitor);
         var rootParseNodeOpt = secondParseVisitor.getRootOpt();
@@ -64,12 +67,7 @@ public class App {
         }
         var rootParseNode = rootParseNodeOpt.get();
 
-        for (var line : rootParseNode.getLines()) {
-            System.out.print(line);
-        }
-
-        // TODO DEBUGGING
-        System.exit(FAILURE_EXIT_CODE);
+         */
 
         // Setup terminal and screen layers
         Terminal terminal = new DefaultTerminalFactory().createTerminal();
@@ -79,21 +77,50 @@ public class App {
         // Create panel to hold components
         Panel parentPanel = new Panel(new LinearLayout());
 
-        var item1 = new ChecklistItemInteractable(
-                0,
-                "*",
-                false,
-                "Item 1"
+        var item1Lines = List.of(
+                "# Header",
+                "This checklist does some stuff"
         );
-        parentPanel.addComponent(item1);
+        parentPanel.addComponent(new TextComponent(0, item1Lines));
 
-        var item2 = new ChecklistItemInteractable(
-                1,
-                "*",
-                true,
-                "Subitem 1"
+        var item2Lines = List.of(
+                "This is a checklist item"
         );
-        parentPanel.addComponent(item2);
+        parentPanel.addComponent(
+                new ChecklistItemInteractable(
+                        0,
+                        new OrdenalListMarker(1, '.'),
+                        false,
+                        item2Lines
+                )
+        );
+
+        var item3Lines = List.of(
+                "This is a second checklist item",
+                "",
+                "It also has some extra lines"
+        );
+        parentPanel.addComponent(
+                new ChecklistItemInteractable(
+                        0,
+                        new OrdenalListMarker(2, '.'),
+                        false,
+                        item3Lines
+                )
+        );
+
+        var item4Lines = List.of(
+                "This is a nested checklist item"
+        );
+        parentPanel.addComponent(
+                new ChecklistItemInteractable(
+                        1,
+                        new BulletListMarker('*'),
+                        false,
+                        item4Lines
+                )
+        );
+
 
         // Create window to hold the panel
         BasicWindow window = new BasicWindow();

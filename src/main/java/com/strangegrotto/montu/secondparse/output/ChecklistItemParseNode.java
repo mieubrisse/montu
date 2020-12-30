@@ -2,6 +2,7 @@ package com.strangegrotto.montu.secondparse.output;
 
 import com.google.common.base.Strings;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,6 +12,7 @@ public class ChecklistItemParseNode implements ContainerParseNode {
     // The indentation string we'll use to indicate that items are nested
     private static final String NEST_INDENTATION = "   ";
 
+    // TODO Remove this - probably not needed
     private final int nestLevel;
     private final String listMarker;
     private final List<BlockParseNode> blockNodes; // These are actually nodes describing the current checklist item; they're not really children
@@ -52,6 +54,12 @@ public class ChecklistItemParseNode implements ContainerParseNode {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         return result;
+    }
+
+    @Override
+    public List<Component> getComponents() {
+        // TODO
+        return null;
     }
 
     @Override
