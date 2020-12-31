@@ -1,6 +1,7 @@
-package com.strangegrotto.montu.secondparse.output;
+package com.strangegrotto.montu.parse.datamodel;
 
 import com.google.common.base.Strings;
+import com.strangegrotto.montu.view.ListMarker;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -8,17 +9,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ChecklistItemParseNode implements ContainerParseNode {
+public class ChecklistItemParseNode implements ParseNode {
     // The indentation string we'll use to indicate that items are nested
     private static final String NEST_INDENTATION = "   ";
 
-    // TODO Remove this - probably not needed
     private final int nestLevel;
-    private final String listMarker;
-    private final List<BlockParseNode> blockNodes; // These are actually nodes describing the current checklist item; they're not really children
+    private final ListMarker listMarker;
+    private final List<MarkdownBlockNode> blockNodes; // These are actually nodes describing the current checklist item; they're not really children
     private final List<ChecklistItemParseNode> checklistItemNodes;
 
-    public ChecklistItemParseNode(int nestLevel, String listMarker) {
+    public ChecklistItemParseNode(int nestLevel, ListMarker listMarker) {
         this.nestLevel = nestLevel;
         this.listMarker = listMarker;
         this.blockNodes = new ArrayList<>();
@@ -28,7 +28,7 @@ public class ChecklistItemParseNode implements ContainerParseNode {
     @Override
     public List<String> getLines() {
         var blockNodeLines = this.blockNodes.stream()
-                .map(BlockParseNode::getLines)
+                .map(MarkdownBlockNode::getLines)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
@@ -63,7 +63,7 @@ public class ChecklistItemParseNode implements ContainerParseNode {
     }
 
     @Override
-    public void addBlockChild(BlockParseNode node) {
+    public void addBlockChild(MarkdownBlockNode node) {
         if (this.checklistItemNodes.size() > 0) {
             throw new IllegalStateException("Cannot add more text block elements after the checklist node contains subchecklist children!");
         }
@@ -73,5 +73,12 @@ public class ChecklistItemParseNode implements ContainerParseNode {
     @Override
     public void addChecklistItemChild(ChecklistItemParseNode node) {
         this.checklistItemNodes.add(node);
+    }
+
+    @Override
+    public List<ParseNode> getChildren() {
+        // NOTE: We DON'T return the block nodes that got attached as children because these are actually a part of
+        //  the checklist item description itself!
+        return List.copyOf(this.checklistItemNodes);
     }
 }

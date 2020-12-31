@@ -1,10 +1,10 @@
-package com.strangegrotto.montu.secondparse.output;
+package com.strangegrotto.montu.parse.datamodel;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RootParseNode implements ContainerParseNode {
+public class RootParseNode implements ParseNode {
     private final List<ParseNode> children;
 
     public RootParseNode() {
@@ -31,12 +31,17 @@ public class RootParseNode implements ContainerParseNode {
     }
 
     @Override
-    public void addBlockChild(BlockParseNode node) {
+    public void addBlockChild(MarkdownBlockNode node) {
         this.children.add(node);
     }
 
     @Override
     public void addChecklistItemChild(ChecklistItemParseNode node) {
         this.children.add(node);
+    }
+
+    @Override
+    public List<ParseNode> getChildren() {
+        return this.children;
     }
 }

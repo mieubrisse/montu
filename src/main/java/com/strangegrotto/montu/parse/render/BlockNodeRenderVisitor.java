@@ -1,13 +1,12 @@
-package com.strangegrotto.montu.secondparse;
+package com.strangegrotto.montu.parse.render;
 import com.google.common.base.Strings;
 import org.commonmark.node.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Visitor to render a tree, rooted at a {@link Block} node, into a string
+ * Visitor to render a tree, rooted at a {@link Block} node, into a list of strings, one per line
  */
 public class BlockNodeRenderVisitor extends AbstractVisitor {
     // TODO Switch this to an optional, which is safer

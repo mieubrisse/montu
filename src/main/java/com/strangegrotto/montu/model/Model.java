@@ -1,10 +1,10 @@
 package com.strangegrotto.montu.model;
 
 public class Model {
-    private final Completable entireChecklist;
+    private final ChildCompletable entireChecklist;
     private int focusedCompletableIndex;    // Index into the entire checklist's children
 
-    public Model(Completable entireChecklist) {
+    public Model(ChildCompletable entireChecklist) {
         this.entireChecklist = entireChecklist;
     }
 

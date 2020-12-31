@@ -1,19 +1,18 @@
-package com.strangegrotto.montu.secondparse;
+package com.strangegrotto.montu.parse.firstparse;
 
-import com.strangegrotto.montu.secondparse.output.*;
-import com.strangegrotto.montu.secondparse.listmarkers.BulletListMarkerSupplier;
-import com.strangegrotto.montu.secondparse.listmarkers.ListMarkerSupplier;
-import com.strangegrotto.montu.secondparse.listmarkers.OrderedListMarkerSupplier;
+import com.strangegrotto.montu.parse.datamodel.*;
+import com.strangegrotto.montu.parse.listmarkers.BulletListMarkerSupplier;
+import com.strangegrotto.montu.parse.listmarkers.ListMarkerSupplier;
+import com.strangegrotto.montu.parse.listmarkers.OrderedListMarkerSupplier;
 import org.commonmark.ext.task.list.items.TaskListItemMarker;
 import org.commonmark.node.*;
 
-import java.util.List;
 import java.util.Optional;
 
-public class SecondParseVisitor extends AbstractVisitor {
+public class FirstParseVisitor extends AbstractVisitor {
     private Optional<ParseNode> rootOpt;
 
-    private Optional<ContainerParseNode> parentOpt;
+    private Optional<ParseNode> parentOpt;
 
     // How deeply nested we are when we visit ListItems
     private int listNestLevel;
@@ -22,7 +21,7 @@ public class SecondParseVisitor extends AbstractVisitor {
     //  to get the marker that they should use when rendering themselves
     private Optional<ListMarkerSupplier> listMarkerSupplierOpt;
 
-    public SecondParseVisitor() {
+    public FirstParseVisitor() {
         this.rootOpt = Optional.empty();
         this.parentOpt = Optional.empty();
         this.listMarkerSupplierOpt = Optional.empty();
@@ -75,7 +74,7 @@ public class SecondParseVisitor extends AbstractVisitor {
 
     @Override
     public void visit(ListItem listItem) {
-        var parent = this.parentOpt.orElseThrow(() -> new SecondParseException(
+        var parent = this.parentOpt.orElseThrow(() -> new FirstParseException(
                 "No parent node exists, indicating this visitor wasn't called on the " +
                     "Document root; this is a code bug"
         ));
@@ -83,10 +82,10 @@ public class SecondParseVisitor extends AbstractVisitor {
         // TODO Maybe remove this requirement and just call all list items checklist items?
         var firstChild = listItem.getFirstChild();
         if (!(firstChild instanceof TaskListItemMarker)) {
-            throw new SecondParseException("Found a list item that wasn't a checklist item");
+            throw new FirstParseException("Found a list item that wasn't a checklist item");
         }
 
-        var listMarkerSupplier = listMarkerSupplierOpt.orElseThrow(() -> new SecondParseException(
+        var listMarkerSupplier = listMarkerSupplierOpt.orElseThrow(() -> new FirstParseException(
                 "Encountered a list item and so expected to have a list marker provider, " +
                     "but none was found; this is a code bug"
         ));
@@ -147,11 +146,11 @@ public class SecondParseVisitor extends AbstractVisitor {
     }
 
     private void addBlockToParentIfPresent(Block blockNode) {
-        var parent = this.parentOpt.orElseThrow(() -> new SecondParseException(
+        var parent = this.parentOpt.orElseThrow(() -> new FirstParseException(
                 "No parent node exists, indicating this visitor wasn't called on the " +
                     "Document root; this is a code bug"
         ));
-        parent.addBlockChild(new BlockParseNode(blockNode));
+        parent.addBlockChild(new MarkdownBlockNode(blockNode));
     }
 
     // =============================================================================================================================
@@ -162,56 +161,56 @@ public class SecondParseVisitor extends AbstractVisitor {
         if (customNode instanceof TaskListItemMarker) {
             return;
         }
-        throw new SecondParseException("Intermediate parser should never see custom nodes outside of TaskListItemMarker");
+        throw new FirstParseException("Intermediate parser should never see custom nodes outside of TaskListItemMarker");
     }
 
     @Override
     public void visit(Code code) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare Code text");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare Code text");
     }
 
     @Override
     public void visit(Emphasis emphasis) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare Emphasis nodes");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare Emphasis nodes");
     }
 
     @Override
     public void visit(HardLineBreak hardLineBreak) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare HardLineBreak nodes");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare HardLineBreak nodes");
     }
 
     @Override
     public void visit(HtmlInline htmlInline) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare inline HTML");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare inline HTML");
     }
 
     @Override
     public void visit(Image image) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare images");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare images");
     }
 
     @Override
     public void visit(Link link) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare Links");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare Links");
     }
 
     @Override
     public void visit(SoftLineBreak softLineBreak) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare soft line breaks");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare soft line breaks");
     }
 
     @Override
     public void visit(StrongEmphasis strongEmphasis) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare StrongEmphasis");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare StrongEmphasis");
     }
 
     @Override
     public void visit(Text text) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare Text");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare Text");
     }
 
     @Override
     public void visit(LinkReferenceDefinition linkReferenceDefinition) {
-        throw new SecondParseException("Intermediate parser shouldn't encounter any bare link reference definitions");
+        throw new FirstParseException("Intermediate parser shouldn't encounter any bare link reference definitions");
     }
 }

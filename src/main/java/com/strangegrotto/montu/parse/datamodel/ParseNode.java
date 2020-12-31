@@ -1,4 +1,4 @@
-package com.strangegrotto.montu.secondparse.output;
+package com.strangegrotto.montu.parse.datamodel;
 
 import java.awt.*;
 import java.util.List;
@@ -10,4 +10,10 @@ public interface ParseNode {
 
     // TODO kill this
     List<String> getLines();
+
+    void addBlockChild(MarkdownBlockNode node);
+
+    void addChecklistItemChild(ChecklistItemParseNode node);
+
+    List<ParseNode> getChildren();
 }
