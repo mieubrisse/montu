@@ -67,11 +67,11 @@ public class MontuInstanceBuildingVisitor extends AbstractVisitor {
         // TODO Maybe remove this requirement and just call all list items checklist items?
         var uncastedCheckbox = listItem.getFirstChild();
         if (!(uncastedCheckbox instanceof TaskListItemMarker)) {
-            throw new FirstParseException("Found a list item that wasn't a checklist item");
+            throw new MontuInstanceBuildException("Found a list item that wasn't a checklist item");
         }
         var checkbox = (TaskListItemMarker)uncastedCheckbox;
 
-        var listMarkerSupplier = this.listMarkerSupplierOpt.orElseThrow(() -> new FirstParseException(
+        var listMarkerSupplier = this.listMarkerSupplierOpt.orElseThrow(() -> new MontuInstanceBuildException(
                 "Encountered a list item and so expected to have a list marker provider, " +
                         "but none was found; this is a code bug"
         ));
@@ -179,56 +179,56 @@ public class MontuInstanceBuildingVisitor extends AbstractVisitor {
         if (customNode instanceof TaskListItemMarker) {
             return;
         }
-        throw new FirstParseException("Intermediate parser should never see custom nodes outside of TaskListItemMarker");
+        throw new MontuInstanceBuildException("Intermediate parser should never see custom nodes outside of TaskListItemMarker");
     }
 
     @Override
     public void visit(Code code) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare Code text");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare Code text");
     }
 
     @Override
     public void visit(Emphasis emphasis) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare Emphasis nodes");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare Emphasis nodes");
     }
 
     @Override
     public void visit(HardLineBreak hardLineBreak) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare HardLineBreak nodes");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare HardLineBreak nodes");
     }
 
     @Override
     public void visit(HtmlInline htmlInline) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare inline HTML");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare inline HTML");
     }
 
     @Override
     public void visit(Image image) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare images");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare images");
     }
 
     @Override
     public void visit(Link link) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare Links");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare Links");
     }
 
     @Override
     public void visit(SoftLineBreak softLineBreak) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare soft line breaks");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare soft line breaks");
     }
 
     @Override
     public void visit(StrongEmphasis strongEmphasis) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare StrongEmphasis");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare StrongEmphasis");
     }
 
     @Override
     public void visit(Text text) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare Text");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare Text");
     }
 
     @Override
     public void visit(LinkReferenceDefinition linkReferenceDefinition) {
-        throw new FirstParseException("Intermediate parser shouldn't encounter any bare link reference definitions");
+        throw new MontuInstanceBuildException("Intermediate parser shouldn't encounter any bare link reference definitions");
     }
 }
