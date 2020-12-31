@@ -20,11 +20,6 @@ public class TextComponent extends AbstractComponent<TextComponent> implements M
     }
 
     @Override
-    public GutterMarker getGutterMarker() {
-        return GutterMarker.BLANK;
-    }
-
-    @Override
     public int getIndentationLevel() {
         return this.indentationLevel;
     }

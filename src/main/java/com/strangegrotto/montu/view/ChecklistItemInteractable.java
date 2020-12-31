@@ -23,11 +23,6 @@ public class ChecklistItemInteractable extends AbstractInteractableComponent<Che
     }
 
     @Override
-    public GutterMarker getGutterMarker() {
-        return this.isFocused() ? GutterMarker.ARROW : GutterMarker.BLANK;
-    }
-
-    @Override
     public int getIndentationLevel() {
         return this.indentationLevel;
     }
