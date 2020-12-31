@@ -7,13 +7,10 @@ public class ChecklistItemInteractableRenderer
         extends AbstractMontuComponentRenderer<ChecklistItemInteractable>
         implements InteractableRenderer<ChecklistItemInteractable> {
 
-    public ChecklistItemInteractableRenderer(int indentationLevel) {
-        super(indentationLevel);
-    }
-
     @Override
     public TerminalPosition getCursorLocation(ChecklistItemInteractable component) {
-        // TODO show the cursor location over the checkbox???
-        return null;
+        var gutterIndentationStrLen = this.getPrefixStr(0, component).length();
+        var checklistCoreOffset = component.getChecklistCoreOffset();
+        return new TerminalPosition(gutterIndentationStrLen + checklistCoreOffset, 0);
     }
 }

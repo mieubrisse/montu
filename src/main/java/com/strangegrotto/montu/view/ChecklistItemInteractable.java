@@ -1,6 +1,8 @@
 package com.strangegrotto.montu.view;
 
 import com.google.common.base.Strings;
+import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.AbstractInteractableComponent;
 import com.googlecode.lanterna.gui2.InteractableRenderer;
 
@@ -26,9 +28,15 @@ public class ChecklistItemInteractable extends AbstractInteractableComponent<Che
     }
 
     @Override
+    public int getIndentationLevel() {
+        return this.indentationLevel;
+    }
+
+    @Override
     public List<String> getLines() {
         var checkboxCore = this.isComplete ? "x" : " ";
-        var firstLinePrefix = listMarker.getMarker() + " [" + checkboxCore + "] ";
+        var stringInFrontOfCheckboxCore = getStringInFrontOfCheckboxCore();
+        var firstLinePrefix = stringInFrontOfCheckboxCore + checkboxCore + "] ";
 
         var result = new ArrayList<String>(this.lines.size());
         for (int i = 0; i < this.lines.size(); i++) {
@@ -43,14 +51,17 @@ public class ChecklistItemInteractable extends AbstractInteractableComponent<Che
         return result;
     }
 
-    public void setCompletionStatus(boolean isComplete) {
-        this.isComplete = isComplete;
-        this.invalidate();
+    // On the first line, the number of characters into the string that the checklist core is
+    int getChecklistCoreOffset() {
+        return getStringInFrontOfCheckboxCore().length();
     }
 
     @Override
     protected InteractableRenderer<ChecklistItemInteractable> createDefaultRenderer() {
-        return new ChecklistItemInteractableRenderer(this.indentationLevel);
+        return new ChecklistItemInteractableRenderer();
+    }
 
+    private String getStringInFrontOfCheckboxCore() {
+        return listMarker.getMarker() + " [";
     }
 }

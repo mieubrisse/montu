@@ -12,14 +12,7 @@ public abstract class AbstractMontuComponentRenderer<T extends MontuComponent> i
     // How much space to leave between the gutter marker and the actual text
     private static final int GUTTER_MARKER_BUFFER = 1;
 
-    private static final int SPACES_PER_INDENTATION_LEVEL = 3;
-
-    // Number of levels of indentation this component resides at
-    private final int indentationLevel;
-
-    protected AbstractMontuComponentRenderer(int indentationLevel) {
-        this.indentationLevel = indentationLevel;
-    }
+    private static final int SPACES_PER_INDENTATION_LEVEL = 4;
 
     @Override
     public TerminalSize getPreferredSize(T component) {
@@ -56,22 +49,28 @@ public abstract class AbstractMontuComponentRenderer<T extends MontuComponent> i
     // Adds the gutter string and indentation to each component line
     private List<String> getLinesWithPrefix(T component) {
 
-        var indentationLevel = this.indentationLevel;
-        var indentationStr = Strings.repeat(" ", indentationLevel * SPACES_PER_INDENTATION_LEVEL);
-
         var componentLines = component.getLines();
         var result = new ArrayList<String>();
         for (int i = 0; i < componentLines.size(); i++) {
-            // Only the first line of the component will receive the gutter marker
-            GutterMarker gutterMarker = GutterMarker.BLANK;
-            if (i == 0) {
-                gutterMarker = component.getGutterMarker();
-            }
-            var gutterStr = gutterMarker.getStr() + Strings.repeat(" ", GUTTER_MARKER_BUFFER);
-
+            var prefixStr = getPrefixStr(i, component);
             var componentLine = componentLines.get(i);
-            result.add(gutterStr + indentationStr + componentLine);
+            result.add(prefixStr + componentLine);
         }
         return result;
+    }
+
+    // The gutter + indentation string that will be prefixed to every line the component declares
+    protected String getPrefixStr(int rowNumber, T component) {
+        var indentationLevel = component.getIndentationLevel();
+        var indentationStr = Strings.repeat(" ", indentationLevel * SPACES_PER_INDENTATION_LEVEL);
+
+        // Only the first line of the component will receive the gutter marker
+        GutterMarker gutterMarker = GutterMarker.BLANK;
+        if (rowNumber == 0) {
+            gutterMarker = component.getGutterMarker();
+        }
+        var gutterStr = gutterMarker.getStr() + Strings.repeat(" ", GUTTER_MARKER_BUFFER);
+
+        return gutterStr + indentationStr;
     }
 }

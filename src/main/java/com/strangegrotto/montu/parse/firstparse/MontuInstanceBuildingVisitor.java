@@ -75,12 +75,21 @@ public class MontuInstanceBuildingVisitor extends AbstractVisitor {
                 "Encountered a list item and so expected to have a list marker provider, " +
                         "but none was found; this is a code bug"
         ));
+        var listMarker = listMarkerSupplier.get();
+
+        var id = UUID.randomUUID();
+        this.resultBuilder.addChecklistItemComponent(
+                parentIdOpt,
+                id,
+                this.indentationLevel,
+                listMarker,
+                checkbox.isChecked()
+        );
 
         // Visit children to get an idea of what's going on below
         var currentParentOpt = this.parentIdOpt;
         var currentParentDescBlocksOopt = this.parentDescBlocksOpt;
 
-        var id = UUID.randomUUID();
         this.parentIdOpt = Optional.of(id);
         this.parentDescBlocksOpt = Optional.of(new ArrayList<>());
 
@@ -90,13 +99,7 @@ public class MontuInstanceBuildingVisitor extends AbstractVisitor {
         this.parentIdOpt = currentParentOpt;
         this.parentDescBlocksOpt = currentParentDescBlocksOopt;
 
-        this.resultBuilder.addChecklistItemComponent(
-                this.parentIdOpt,
-                id,
-                this.indentationLevel,
-                listMarkerSupplier,
-                checkbox.isChecked(),
-                childDescBlocks);
+        this.resultBuilder.addChecklistItemComponentDescription(id, childDescBlocks);
     }
 
     private void visitListNode(ListBlock listNode, ListMarkerSupplier itemMarkerSupplier) {

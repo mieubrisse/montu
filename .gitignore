@@ -3,3 +3,11 @@
 
 # Ignore Gradle build output directory
 build
+
+# Ignore IntelliJ build output directory
+out
+
+# Ignore IntelliJ files
+*.ipr
+*.iws
+*.iml

@@ -30,12 +30,6 @@ public class MontuInstance {
         Panel parentPanel = new Panel(new LinearLayout());
         this.components.stream().forEach(parentPanel::addComponent);
 
-        var item1Lines = List.of(
-                "# Header",
-                "This checklist does some stuff"
-        );
-        parentPanel.addComponent(new TextComponent(0, item1Lines));
-
         // Create window to hold the panel
         BasicWindow window = new BasicWindow();
         window.setComponent(parentPanel);

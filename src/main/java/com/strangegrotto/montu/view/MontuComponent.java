@@ -7,5 +7,7 @@ import java.util.List;
 public interface MontuComponent extends Component {
     GutterMarker getGutterMarker();
 
+    int getIndentationLevel();
+
     List<String> getLines();
 }

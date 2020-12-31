@@ -16,12 +16,17 @@ public class TextComponent extends AbstractComponent<TextComponent> implements M
 
     @Override
     protected ComponentRenderer<TextComponent> createDefaultRenderer() {
-        return new TextComponentRenderer(this.indentationLevel);
+        return new TextComponentRenderer();
     }
 
     @Override
     public GutterMarker getGutterMarker() {
         return GutterMarker.BLANK;
+    }
+
+    @Override
+    public int getIndentationLevel() {
+        return this.indentationLevel;
     }
 
     @Override

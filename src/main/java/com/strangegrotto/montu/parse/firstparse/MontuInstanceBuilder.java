@@ -8,13 +8,11 @@ import com.strangegrotto.montu.model.Model;
 import com.strangegrotto.montu.parse.listmarkers.ListMarkerSupplier;
 import com.strangegrotto.montu.parse.render.MultipleBlockNodeRenderer;
 import com.strangegrotto.montu.view.ChecklistItemInteractable;
+import com.strangegrotto.montu.view.ListMarker;
 import com.strangegrotto.montu.view.TextComponent;
 import org.commonmark.node.Block;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 // TODO Move next to MontuInstance and make constructor private
@@ -23,6 +21,8 @@ public class MontuInstanceBuilder {
     private final List<UUID> componentDisplayOrder;
 
     private final Map<UUID, Component> components;
+
+    private final Map<UUID, DeferredChecklistComponentInfo> deferredChecklistComponentInfo;
 
     private final Map<UUID, Boolean> isCompleted;
 
@@ -34,42 +34,69 @@ public class MontuInstanceBuilder {
     private final SetMultimap<UUID, UUID> children;
 
 
+    // This is the package class used to store information between the call to addChecklistItemComponent
+    //  and the call to addChecklistItemComponentDescription
+    private static class DeferredChecklistComponentInfo {
+        private final int indenatationLevel;
+        private final ListMarker listMarker;
+        private final boolean isChecked;
+
+        public DeferredChecklistComponentInfo(int indenatationLevel, ListMarker listMarker, boolean isChecked) {
+            this.indenatationLevel = indenatationLevel;
+            this.listMarker = listMarker;
+            this.isChecked = isChecked;
+        }
+    }
+
+
     public MontuInstanceBuilder() {
-        this.componentDisplayOrder = List.of();
-        this.components = Map.of();
-        this.isCompleted = Map.of();
-        this.parents = Map.of();
+        this.componentDisplayOrder = new ArrayList<>();
+        this.components = new HashMap<>();
+        this.deferredChecklistComponentInfo = new HashMap<>();
+        this.isCompleted = new HashMap<>();
+        this.parents = new HashMap<>();
         this.children = MultimapBuilder.hashKeys().hashSetValues().build();
     }
 
     public void addTextComponent(int indentationLevel, Block block) {
         var lines = MultipleBlockNodeRenderer.render(List.of(block));
         var component = new TextComponent(indentationLevel, lines);
-        addComponent(UUID.randomUUID(), component);
+        var id = UUID.randomUUID();
+        this.componentDisplayOrder.add(id);
+        this.components.put(id, component);
     }
 
     public void addChecklistItemComponent(
             Optional<UUID> parentIdOpt,
             UUID id,
             int indentationLevel,
-            ListMarkerSupplier listMarkerSupplier,
-            boolean isChecked,
-            List<Block> descBlocks) {
+            ListMarker listMarker,
+            boolean isChecked) {
         if (parentIdOpt.isPresent()) {
             var parentId = parentIdOpt.get();
             this.parents.put(id, parentId);
             this.children.put(parentId, id);
         }
-
         this.isCompleted.put(id, isChecked);
-        List<String> descLines = MultipleBlockNodeRenderer.render(descBlocks);
-        var component = new ChecklistItemInteractable(
+        this.componentDisplayOrder.add(id);
+        var deferredComponentInfo = new DeferredChecklistComponentInfo(
                 indentationLevel,
-                listMarkerSupplier.get(),
-                isChecked,
-                descLines);
+                listMarker,
+                isChecked);
+        this.deferredChecklistComponentInfo.put(id, deferredComponentInfo);
+    }
 
-        addComponent(id, component);
+    // The description needs to be filled in afterwards because we only know that after we parse the
+    //  children of a Markdown ListItem. Sucks that it's not atomic, but not the end of the world
+    public void addChecklistItemComponentDescription(UUID id, List<Block> descBlocks) {
+        List<String> descLines = MultipleBlockNodeRenderer.render(descBlocks);
+        var deferredComponentInfo = this.deferredChecklistComponentInfo.get(id);
+        var component = new ChecklistItemInteractable(
+                deferredComponentInfo.indenatationLevel,
+                deferredComponentInfo.listMarker,
+                deferredComponentInfo.isChecked,
+                descLines);
+        this.components.put(id, component);
     }
 
     public MontuInstance build() {
@@ -78,13 +105,5 @@ public class MontuInstanceBuilder {
                 .collect(Collectors.toList());
         // TODO rest of components
         return new MontuInstance(componentsForInstance);
-    }
-
-    // =============================================================================================================================
-    //                                        Private helper methods
-    // =============================================================================================================================
-    private void addComponent(UUID id, Component component) {
-        this.componentDisplayOrder.add(id);
-        this.components.put(id, component);
     }
 }

@@ -9,6 +9,7 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
+import com.strangegrotto.montu.parse.firstparse.MontuInstanceBuildingVisitor;
 import com.strangegrotto.montu.view.BulletListMarker;
 import com.strangegrotto.montu.view.ChecklistItemInteractable;
 import com.strangegrotto.montu.view.OrdenalListMarker;
@@ -28,7 +29,7 @@ import java.util.Set;
 
 public class App {
     // TODO replace with parameterized file
-    private static String FILEPATH = "/tmp/test-checklist.md";
+    private static String FILEPATH = "/Users/zerix/junk/test-checklist.md";
     // private static String FILEPATH = "/Users/zerix/gdrive/checklists-and-templates/packing-lists/planning-travel.md";
 
     private static int SUCCESS_EXIT_CODE = 0;
@@ -52,23 +53,11 @@ public class App {
             return;
         }
 
-        parseResult.accept(new DebuggingVisitor());
+        var instanceBuildingVisitor = new MontuInstanceBuildingVisitor();
+        parseResult.accept(instanceBuildingVisitor);
 
+        var instance = instanceBuildingVisitor.getMontuInstance();
 
-        /*
-        var secondParseVisitor = new SecondParseVisitor();
-        parseResult.accept(secondParseVisitor);
-        var rootParseNodeOpt = secondParseVisitor.getRootOpt();
-        if (!rootParseNodeOpt.isPresent()) {
-            log.error("The second parse visitor didn't set the root node during parsing; this is a code bug " +
-                    "indicating that it wasn't called on the Document root");
-            System.exit(FAILURE_EXIT_CODE);
-            return;
-        }
-        var rootParseNode = rootParseNodeOpt.get();
-
-         */
-
-        // Setup terminal and screen layers
+        instance.run();
     }
 }
