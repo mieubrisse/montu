@@ -1,36 +1,91 @@
 package com.strangegrotto.montu.parse.datamodel;
 
 import com.google.common.base.Strings;
+import com.strangegrotto.montu.model.ChildCompletable;
+import com.strangegrotto.montu.model.Completable;
+import com.strangegrotto.montu.parse.secondparse.SecondParseVisitor;
+import com.strangegrotto.montu.view.ChecklistItemInteractable;
 import com.strangegrotto.montu.view.ListMarker;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ChecklistItemParseNode implements ParseNode {
-    // The indentation string we'll use to indicate that items are nested
-    private static final String NEST_INDENTATION = "   ";
-
+    private final boolean isCompleted;
     private final int nestLevel;
     private final ListMarker listMarker;
-    private final List<MarkdownBlockNode> blockNodes; // These are actually nodes describing the current checklist item; they're not really children
-    private final List<ChecklistItemParseNode> checklistItemNodes;
+    private final List<MarkdownBlockNode> descNodes; // These are actually nodes describing the current checklist item; they're not really children
+    private final List<ChecklistItemParseNode> children;
 
-    public ChecklistItemParseNode(int nestLevel, ListMarker listMarker) {
+    // Package class to hold the interactable and the completable which holds a reference to it
+    public static class InteractableAndCompletable {
+        private final ChecklistItemInteractable interactable;
+        private final Completable completable;
+
+        public InteractableAndCompletable(ChecklistItemInteractable interactable, Completable completable) {
+            this.interactable = interactable;
+            this.completable = completable;
+        }
+
+        public ChecklistItemInteractable getInteractable() {
+            return interactable;
+        }
+
+        public Completable getCompletable() {
+            return completable;
+        }
+    }
+
+    public ChecklistItemParseNode(int nestLevel, ListMarker listMarker, boolean isCompleted) {
         this.nestLevel = nestLevel;
         this.listMarker = listMarker;
-        this.blockNodes = new ArrayList<>();
-        this.checklistItemNodes = new ArrayList<>();
+        this.isCompleted = isCompleted;
+        this.descNodes = new ArrayList<>();
+        this.children = new ArrayList<>();
+    }
+
+    @Override
+    public void addBlockChild(MarkdownBlockNode node) {
+        if (this.children.size() > 0) {
+            throw new IllegalStateException("Cannot add more text block elements after the checklist node contains subchecklist children!");
+        }
+        this.descNodes.add(node);
+    }
+
+    @Override
+    public void addChecklistItemChild(ChecklistItemParseNode node) {
+        this.children.add(node);
+    }
+
+    @Override
+    public List<ParseNode> getChildren() {
+        // NOTE: We DON'T return the block nodes that got attached as children because these are actually a part of
+        //  the checklist item description itself!
+        return List.copyOf(this.children);
+    }
+
+    @Override
+    public void accept(SecondParseVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public InteractableAndCompletable getInteractableAndCompletable(Completable parentCompletable) {
+        // TODO insert spaces between certain blocks
+        var lines = this.descNodes.stream()
+                .map(MarkdownBlockNode::getLines)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        var interactable = new ChecklistItemInteractable(this.nestLevel, this.listMarker, this.isCompleted, lines);
+        var completable = new ChildCompletable(parentCompletable, interactable, this.isCompleted);
+
+        return new InteractableAndCompletable(interactable, completable);
     }
 
     @Override
     public List<String> getLines() {
-        var blockNodeLines = this.blockNodes.stream()
-                .map(MarkdownBlockNode::getLines)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
 
         if (blockNodeLines.size() == 0) {
             throw new IllegalStateException("Number of block nodes describing the item must be > 0");
@@ -45,7 +100,7 @@ public class ChecklistItemParseNode implements ParseNode {
                 .skip(1)
                 .map(line -> descriptionIndentation + line)
                 .collect(Collectors.toList());
-        var checklistLines = this.checklistItemNodes.stream()
+        var checklistLines = this.children.stream()
                 .map(ChecklistItemParseNode::getLines)
                 .flatMap(List::stream)
                 .map(line -> NEST_INDENTATION + line)
@@ -54,31 +109,5 @@ public class ChecklistItemParseNode implements ParseNode {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         return result;
-    }
-
-    @Override
-    public List<Component> getComponents() {
-        // TODO
-        return null;
-    }
-
-    @Override
-    public void addBlockChild(MarkdownBlockNode node) {
-        if (this.checklistItemNodes.size() > 0) {
-            throw new IllegalStateException("Cannot add more text block elements after the checklist node contains subchecklist children!");
-        }
-        this.blockNodes.add(node);
-    }
-
-    @Override
-    public void addChecklistItemChild(ChecklistItemParseNode node) {
-        this.checklistItemNodes.add(node);
-    }
-
-    @Override
-    public List<ParseNode> getChildren() {
-        // NOTE: We DON'T return the block nodes that got attached as children because these are actually a part of
-        //  the checklist item description itself!
-        return List.copyOf(this.checklistItemNodes);
     }
 }

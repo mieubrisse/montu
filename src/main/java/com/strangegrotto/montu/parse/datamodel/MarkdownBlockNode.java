@@ -1,6 +1,7 @@
 package com.strangegrotto.montu.parse.datamodel;
 
 import com.strangegrotto.montu.parse.render.BlockNodeRenderVisitor;
+import com.strangegrotto.montu.parse.secondparse.SecondParseVisitor;
 import org.commonmark.node.Node;
 
 import java.awt.*;
@@ -43,5 +44,10 @@ public class MarkdownBlockNode implements ParseNode {
     public List<ParseNode> getChildren() {
         return List.of();
 
+    }
+
+    @Override
+    public void accept(SecondParseVisitor visitor) {
+        visitor.visit(this);
     }
 }

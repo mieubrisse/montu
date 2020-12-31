@@ -1,5 +1,7 @@
 package com.strangegrotto.montu.parse.datamodel;
 
+import com.strangegrotto.montu.parse.secondparse.SecondParseVisitor;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,5 +45,10 @@ public class RootParseNode implements ParseNode {
     @Override
     public List<ParseNode> getChildren() {
         return this.children;
+    }
+
+    @Override
+    public void accept(SecondParseVisitor visitor) {
+        visitor.visit(this);
     }
 }
