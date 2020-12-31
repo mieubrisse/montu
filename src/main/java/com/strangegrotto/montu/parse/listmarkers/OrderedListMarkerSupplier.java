@@ -1,4 +1,7 @@
-package com.strangegrotto.montu.secondparse.listmarkers;
+package com.strangegrotto.montu.parse.listmarkers;
+
+import com.strangegrotto.montu.view.ListMarker;
+import com.strangegrotto.montu.view.OrdenalListMarker;
 
 public class OrderedListMarkerSupplier implements ListMarkerSupplier {
     private int index;
@@ -10,8 +13,8 @@ public class OrderedListMarkerSupplier implements ListMarkerSupplier {
     }
 
     @Override
-    public String get() {
-        var result = Integer.toString(this.index) + delimiter;
+    public ListMarker get() {
+        var result = new OrdenalListMarker(this.index, this.delimiter);
         this.index++;
         return result;
     }

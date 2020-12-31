@@ -9,9 +9,11 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
-import com.strangegrotto.montu.render.ChecklistItemInteractable;
-import com.strangegrotto.montu.secondparse.ParseNodeToTextVisitor;
-import com.strangegrotto.montu.secondparse.SecondParseVisitor;
+import com.strangegrotto.montu.parse.firstparse.MontuInstanceBuildingVisitor;
+import com.strangegrotto.montu.view.BulletListMarker;
+import com.strangegrotto.montu.view.ChecklistItemInteractable;
+import com.strangegrotto.montu.view.OrdenalListMarker;
+import com.strangegrotto.montu.view.TextComponent;
 import org.commonmark.ext.task.list.items.TaskListItemsExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
@@ -21,12 +23,13 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 
 public class App {
     // TODO replace with parameterized file
-    private static String FILEPATH = "/tmp/test-checklist.md";
+    private static String FILEPATH = "/Users/zerix/junk/test-checklist.md";
     // private static String FILEPATH = "/Users/zerix/gdrive/checklists-and-templates/packing-lists/planning-travel.md";
 
     private static int SUCCESS_EXIT_CODE = 0;
@@ -50,60 +53,11 @@ public class App {
             return;
         }
 
-        parseResult.accept(new DebuggingVisitor());
+        var instanceBuildingVisitor = new MontuInstanceBuildingVisitor();
+        parseResult.accept(instanceBuildingVisitor);
 
+        var instance = instanceBuildingVisitor.getMontuInstance();
 
-        var secondParseVisitor = new SecondParseVisitor();
-        parseResult.accept(secondParseVisitor);
-        var rootParseNodeOpt = secondParseVisitor.getRootOpt();
-        if (!rootParseNodeOpt.isPresent()) {
-            log.error("The second parse visitor didn't set the root node during parsing; this is a code bug " +
-                    "indicating that it wasn't called on the Document root");
-            System.exit(FAILURE_EXIT_CODE);
-            return;
-        }
-        var rootParseNode = rootParseNodeOpt.get();
-
-        for (var line : rootParseNode.getLines()) {
-            System.out.print(line);
-        }
-
-        // TODO DEBUGGING
-        System.exit(FAILURE_EXIT_CODE);
-
-        // Setup terminal and screen layers
-        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
-
-        // Create panel to hold components
-        Panel parentPanel = new Panel(new LinearLayout());
-
-        var item1 = new ChecklistItemInteractable(
-                0,
-                "*",
-                false,
-                "Item 1"
-        );
-        parentPanel.addComponent(item1);
-
-        var item2 = new ChecklistItemInteractable(
-                1,
-                "*",
-                true,
-                "Subitem 1"
-        );
-        parentPanel.addComponent(item2);
-
-        // Create window to hold the panel
-        BasicWindow window = new BasicWindow();
-        window.setComponent(parentPanel);
-
-        // Create gui and start gui
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(
-                screen,
-                new DefaultWindowManager(),
-                new EmptySpace(TextColor.ANSI.BLUE));
-        gui.addWindowAndWait(window);
+        instance.run();
     }
 }
