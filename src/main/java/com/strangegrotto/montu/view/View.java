@@ -8,7 +8,8 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import com.strangegrotto.montu.controller.Controller;
-import com.strangegrotto.montu.view.checklistitem.ChecklistItemInteractable;
+import com.strangegrotto.montu.view.component.base.*;
+import com.strangegrotto.montu.view.component.checklistitem.ChecklistItemInteractable;
 
 import java.io.IOException;
 import java.util.*;
@@ -20,6 +21,8 @@ public class View {
     // For component N, yields the index in allComponentLines where the component's lines start
     private final Map<Integer, Integer> allComponentLinesIndices;
     private final List<ChecklistItemInteractable> checklistItems;
+
+    private Optional<Integer> focusedItemIndex;
 
     // Because there's a necessary circular dependency between Controller -> Model -> View -> Controller,
     //  we have to break it with a non-final variable
@@ -58,6 +61,7 @@ public class View {
             }
         }
         this.checklistItems = checklistItems;
+        this.focusedItemIndex = Optional.empty();
         this.windowOpt = Optional.empty();
     }
 
@@ -106,26 +110,56 @@ public class View {
         Preconditions.checkState(index >= 0, "Cannot focus a checklist item with index less than 0");
         Preconditions.checkState(index < this.checklistItems.size(), "Requested to focus a checklist item index that's greater than the array has");
 
-        if (index == 0) {
-            // Stack all components on bottom
-        } else if (index == this.checklistItems.size() - 1) {
-            // Stack all components on top
-        }
-
         var interactableToFocus = this.checklistItems.get(index);
         var window = this.windowOpt.get();
         window.setFocusedInteractable(interactableToFocus);
+        this.centerView(index);
+        this.focusedItemIndex = Optional.of(index);
     }
 
-    // TODO DEBUGGING
-    public void recalculateView(Window window, int index) {
+    // Centers the view on the current focused row
+    public void centerView(int focusedItemIndex) {
+        Preconditions.checkState(this.windowOpt.isPresent(), "No controller has been registered so no window exists to center");
+        var window = this.windowOpt.get();
         var windowSize = window.getSize();
         var windowHeight = windowSize.getRows();
+        var rowsNeededAbove = windowHeight / 2;  // We try to put the focused item in the center of the window
+        var rowsNeededBelow = windowHeight - rowsNeededAbove;
 
-        var linesUsed =
-        var viewStartIndex = index;
+        for (int i = focusedItemIndex - 1; i >= 0; i--) {
+            var component = this.components.get(i);
+            var lines = component.getLines();
+            if (rowsNeededAbove > 0) {
+                if (rowsNeededAbove >= lines.size()) {
+                    component.setLinesFilter(new ShowAllLinesFilter());
+                    rowsNeededAbove -= lines.size();
+                } else {
+                    component.setLinesFilter(new ShowBottomNLinesFilter(rowsNeededAbove));
+                    rowsNeededAbove = 0;
+                }
+            } else {
+                component.setLinesFilter(new ShowNoLinesFilter());
+            }
+        }
 
+        // Any leftover rows from above that weren't consumed, we'll use down below
+        rowsNeededBelow += rowsNeededAbove;
 
+        for (int i = focusedItemIndex; i < this.components.size(); i++) {
+            var component = this.components.get(i);
+            var lines = component.getLines();
+            if (rowsNeededBelow > 0) {
+                if (rowsNeededBelow >= lines.size()) {
+                    component.setLinesFilter(new ShowAllLinesFilter());
+                    rowsNeededBelow -= lines.size();
+                } else {
+                    component.setLinesFilter(new ShowTopNLinesFilter(rowsNeededBelow));
+                    rowsNeededBelow = 0;
+                }
+            } else {
+                component.setLinesFilter(new ShowNoLinesFilter());
+            }
+        }
         this.windowOpt.get().invalidate();
     }
 

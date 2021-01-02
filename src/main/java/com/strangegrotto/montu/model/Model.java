@@ -54,6 +54,13 @@ public class Model {
         this.isItemCheckedArr.set(cursorIdx, newState);
     }
 
+    public void centerOnCursor() {
+        if (!this.cursorIndexOpt.isPresent()) {
+            return;
+        }
+        this.view.centerView(this.cursorIndexOpt.get());
+    }
+
     private void moveCursor(int delta) {
         // If no elements, we can never move the cursor
         if (this.isItemCheckedArr.size() == 0) {

@@ -1,11 +1,11 @@
-package com.strangegrotto.montu.view.checklistitem;
+package com.strangegrotto.montu.view.component.checklistitem;
 
 import com.google.common.base.Strings;
 import com.googlecode.lanterna.gui2.AbstractInteractableComponent;
 import com.googlecode.lanterna.gui2.InteractableRenderer;
-import com.strangegrotto.montu.view.DisplayLinesFilter;
-import com.strangegrotto.montu.view.MontuComponent;
-import com.strangegrotto.montu.view.ShowAllLinesFilter;
+import com.strangegrotto.montu.view.component.base.DisplayLinesFilter;
+import com.strangegrotto.montu.view.component.base.MontuComponent;
+import com.strangegrotto.montu.view.component.base.ShowAllLinesFilter;
 
 import java.util.ArrayList;
 import java.util.List;

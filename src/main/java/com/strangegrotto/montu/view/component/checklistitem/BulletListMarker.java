@@ -1,4 +1,4 @@
-package com.strangegrotto.montu.view.checklistitem;
+package com.strangegrotto.montu.view.component.checklistitem;
 
 public class BulletListMarker implements ListMarker {
     private final char bullet;

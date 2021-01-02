@@ -1,4 +1,4 @@
-package com.strangegrotto.montu.view;
+package com.strangegrotto.montu.view.component.base;
 
 import java.util.List;
 

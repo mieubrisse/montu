@@ -1,4 +1,4 @@
-package com.strangegrotto.montu.view;
+package com.strangegrotto.montu.view.component.base;
 
 import com.google.common.base.Strings;
 import com.googlecode.lanterna.TerminalSize;
@@ -13,27 +13,29 @@ public abstract class AbstractMontuComponentRenderer<T extends MontuComponent> i
 
     @Override
     public TerminalSize getPreferredSize(T component) {
-        if (!component.isVisible()) {
-            return new TerminalSize(0, 0);
+        var linesWithPrefix = getLinesWithPrefix(component);
+        if (linesWithPrefix.size() == 0) {
+            return TerminalSize.ZERO;
         }
 
-        var linesWithPrefix = getLinesWithPrefix(component);
         var longestLineLenOpt = linesWithPrefix.stream()
                 .map(String::length)
                 .max(Integer::compareTo);
         var longestLineLen = longestLineLenOpt.orElseThrow(() -> new IllegalStateException(
                 "Component doesn't have any lines; this must be a code bug"
         ));
-        return new TerminalSize(longestLineLen, linesWithPrefix.size());
+        var preferredSize = new TerminalSize(longestLineLen, linesWithPrefix.size());
+        // TODO Debugging
+        System.out.println("Size: " + preferredSize.getColumns() + ", " + preferredSize.getRows());
+        return preferredSize;
     }
 
     @Override
     public void drawComponent(TextGUIGraphics graphics, T component) {
-        if (!component.isVisible()) {
+        var linesWithPrefix = getLinesWithPrefix(component);
+        if (linesWithPrefix.size() == 0) {
             return;
         }
-
-        var linesWithPrefix = getLinesWithPrefix(component);
 
         var termSize = graphics.getTextGUI().getScreen().getTerminalSize();
         var termWidth = termSize.getColumns();
@@ -55,8 +57,9 @@ public abstract class AbstractMontuComponentRenderer<T extends MontuComponent> i
     private List<String> getLinesWithPrefix(T component) {
         var indentationStr = getIndentationStr(component);
         var componentLines = component.getLines();
+        var filteredComponentLines = component.getLinesFilter().filterDisplayLines(componentLines);
         var result = new ArrayList<String>();
-        for (var line : componentLines) {
+        for (var line : filteredComponentLines) {
             result.add(indentationStr + line);
         }
         return result;

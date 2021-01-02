@@ -1,10 +1,10 @@
-package com.strangegrotto.montu.view.text;
+package com.strangegrotto.montu.view.component.text;
 
 import com.googlecode.lanterna.gui2.AbstractComponent;
 import com.googlecode.lanterna.gui2.ComponentRenderer;
-import com.strangegrotto.montu.view.DisplayLinesFilter;
-import com.strangegrotto.montu.view.MontuComponent;
-import com.strangegrotto.montu.view.ShowAllLinesFilter;
+import com.strangegrotto.montu.view.component.base.DisplayLinesFilter;
+import com.strangegrotto.montu.view.component.base.MontuComponent;
+import com.strangegrotto.montu.view.component.base.ShowAllLinesFilter;
 
 import java.util.List;
 

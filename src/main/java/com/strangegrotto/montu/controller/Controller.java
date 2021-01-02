@@ -10,6 +10,7 @@ public class Controller implements InputHandler {
     private static final char SCROLL_DOWN_ONE_PAGE_CHAR = 'J';
     private static final char SCROLL_UP_ONE_PAGE_CHAR = 'K';
     private static final char TOGGLE_COMPLETION_CHAR = 'x';
+    private static final char CENTER_SCREEN_CHAR = 'z';
 
     private final Model model;
 
@@ -41,6 +42,9 @@ public class Controller implements InputHandler {
                 return true;
             case TOGGLE_COMPLETION_CHAR:
                 this.model.toggleItemCompletion();
+                return true;
+            case CENTER_SCREEN_CHAR:
+                this.model.centerOnCursor();
                 return true;
             default:
                 return false;
