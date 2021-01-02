@@ -13,16 +13,12 @@ import com.strangegrotto.montu.view.component.checklistitem.ChecklistItemInterac
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class View {
     private final List<MontuComponent> components;
     private final List<String> allComponentLines;
-
-    // For component N, yields the index in allComponentLines where the component's lines start
-    private final Map<Integer, Integer> allComponentLinesIndices;
     private final List<ChecklistItemInteractable> checklistItems;
-
-    private Optional<Integer> focusedItemIndex;
 
     // Because there's a necessary circular dependency between Controller -> Model -> View -> Controller,
     //  we have to break it with a non-final variable
@@ -38,19 +34,10 @@ public class View {
         // Generate a list of all the component lines in sequential order, and a map of
         //  component_index -> index_into_all_component_lines where that component's lines start
         this.allComponentLines = new ArrayList<>();
-        this.allComponentLinesIndices = new HashMap<>();
-        var allComponentLinesIdx = 0;
-        for (int componentIdx = 0; componentIdx < this.components.size(); componentIdx++) {
-            var component = this.components.get(componentIdx);
-            var lines = component.getLines();
-            if (lines.size() > 0) {
-                this.allComponentLinesIndices.put(componentIdx, allComponentLinesIdx);
-            }
-            for (var line : lines) {
-                this.allComponentLines.add(line);
-                allComponentLinesIdx++;
-            }
-        }
+        this.components.stream()
+                .map(MontuComponent::getLines)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
 
         var checklistItems = new ArrayList<ChecklistItemInteractable>();
         for (int i = 0; i < components.size(); i++) {
@@ -61,7 +48,6 @@ public class View {
             }
         }
         this.checklistItems = checklistItems;
-        this.focusedItemIndex = Optional.empty();
         this.windowOpt = Optional.empty();
     }
 
@@ -114,7 +100,6 @@ public class View {
         var window = this.windowOpt.get();
         window.setFocusedInteractable(interactableToFocus);
         this.centerView(index);
-        this.focusedItemIndex = Optional.of(index);
     }
 
     // Centers the view on the current focused row
