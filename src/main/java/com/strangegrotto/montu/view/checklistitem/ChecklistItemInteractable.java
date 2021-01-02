@@ -3,7 +3,6 @@ package com.strangegrotto.montu.view.checklistitem;
 import com.google.common.base.Strings;
 import com.googlecode.lanterna.gui2.AbstractInteractableComponent;
 import com.googlecode.lanterna.gui2.InteractableRenderer;
-import com.googlecode.lanterna.input.KeyStroke;
 import com.strangegrotto.montu.view.MontuComponent;
 
 import java.util.ArrayList;
@@ -12,13 +11,13 @@ import java.util.List;
 public class ChecklistItemInteractable extends AbstractInteractableComponent<ChecklistItemInteractable> implements MontuComponent {
     private final int indentationLevel;
     private final ListMarker listMarker;
-    private boolean isComplete;
+    private boolean isChecked;
     private final List<String> lines;
 
-    public ChecklistItemInteractable(int indentationLevel, ListMarker listMarker, boolean isComplete, List<String> lines) {
+    public ChecklistItemInteractable(int indentationLevel, ListMarker listMarker, boolean isChecked, List<String> lines) {
         this.indentationLevel = indentationLevel;
         this.listMarker = listMarker;
-        this.isComplete = isComplete;
+        this.isChecked = isChecked;
         this.lines = lines;
     }
 
@@ -29,7 +28,7 @@ public class ChecklistItemInteractable extends AbstractInteractableComponent<Che
 
     @Override
     public List<String> getLines() {
-        var checkboxCore = this.isComplete ? "x" : " ";
+        var checkboxCore = this.isChecked ? "x" : " ";
         var stringInFrontOfCheckboxCore = getStringInFrontOfCheckboxCore();
         var firstLinePrefix = stringInFrontOfCheckboxCore + checkboxCore + "] ";
 
@@ -44,6 +43,11 @@ public class ChecklistItemInteractable extends AbstractInteractableComponent<Che
             result.add(prefix + rawLine);
         }
         return result;
+    }
+
+    public void setState(boolean isComplete) {
+        this.isChecked = isComplete;
+        this.invalidate();
     }
 
     // On the first line, the number of characters into the string that the checklist core is

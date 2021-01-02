@@ -8,13 +8,14 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import com.strangegrotto.montu.controller.Controller;
+import com.strangegrotto.montu.view.checklistitem.ChecklistItemInteractable;
 
 import java.io.IOException;
 import java.util.*;
 
 public class View {
     private final List<Component> components;
-    private final List<Interactable> checklistItems;
+    private final List<ChecklistItemInteractable> checklistItems;
 
     // Because there's a necessary circular dependency between Controller -> Model -> View -> Controller,
     //  we have to break it with a non-final variable
@@ -26,11 +27,11 @@ public class View {
                 "Number of checklist item compnents cannot be > number of components"
         );
         this.components = components;
-        var checklistItems = new ArrayList<Interactable>();
+        var checklistItems = new ArrayList<ChecklistItemInteractable>();
         for (int i = 0; i < components.size(); i++) {
             var component = components.get(i);
             if (checklistItemIndices.contains(i)) {
-                var interactable = (Interactable)component;
+                var interactable = (ChecklistItemInteractable)component;
                 checklistItems.add(interactable);
             }
         }
@@ -85,5 +86,10 @@ public class View {
         var interactableToFocus = this.checklistItems.get(index);
         var window = this.windowOpt.get();
         window.setFocusedInteractable(interactableToFocus);
+    }
+
+    public void setChecklistItemState(int index, boolean isChecked) {
+        var component = this.checklistItems.get(index);
+        component.setState(isChecked);
     }
 }

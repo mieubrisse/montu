@@ -43,6 +43,17 @@ public class Model {
         this.moveCursor(-PAGE_SKIP_NUM_ITEMS);
     }
 
+    public void toggleItemCompletion() {
+        if (!this.cursorIndexOpt.isPresent()) {
+            return;
+        }
+        var cursorIdx = this.cursorIndexOpt.get();
+        var currentState = this.isItemCheckedArr.get(cursorIdx);
+        var newState = !currentState;
+        this.view.setChecklistItemState(cursorIdx, newState);
+        this.isItemCheckedArr.set(cursorIdx, newState);
+    }
+
     private void moveCursor(int delta) {
         // If no elements, we can never move the cursor
         if (this.isItemCheckedArr.size() == 0) {
