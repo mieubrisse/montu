@@ -1,7 +1,7 @@
 package com.strangegrotto.montu.parse.listmarkers;
 
-import com.strangegrotto.montu.view.ListMarker;
-import com.strangegrotto.montu.view.OrdenalListMarker;
+import com.strangegrotto.montu.view.checklistitem.ListMarker;
+import com.strangegrotto.montu.view.checklistitem.OrdenalListMarker;
 
 public class OrderedListMarkerSupplier implements ListMarkerSupplier {
     private int index;

@@ -1,7 +1,8 @@
-package com.strangegrotto.montu.view;
+package com.strangegrotto.montu.view.checklistitem;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.gui2.InteractableRenderer;
+import com.strangegrotto.montu.view.AbstractMontuComponentRenderer;
 
 public class ChecklistItemInteractableRenderer
         extends AbstractMontuComponentRenderer<ChecklistItemInteractable>

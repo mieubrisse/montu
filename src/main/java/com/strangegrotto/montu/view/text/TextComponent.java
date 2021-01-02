@@ -1,7 +1,8 @@
-package com.strangegrotto.montu.view;
+package com.strangegrotto.montu.view.text;
 
 import com.googlecode.lanterna.gui2.AbstractComponent;
 import com.googlecode.lanterna.gui2.ComponentRenderer;
+import com.strangegrotto.montu.view.MontuComponent;
 
 import java.util.List;
 

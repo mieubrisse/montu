@@ -3,17 +3,7 @@
  */
 package com.strangegrotto.montu;
 
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
 import com.strangegrotto.montu.parse.firstparse.MontuInstanceBuildingVisitor;
-import com.strangegrotto.montu.view.BulletListMarker;
-import com.strangegrotto.montu.view.ChecklistItemInteractable;
-import com.strangegrotto.montu.view.OrdenalListMarker;
-import com.strangegrotto.montu.view.TextComponent;
 import org.commonmark.ext.task.list.items.TaskListItemsExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
@@ -23,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 

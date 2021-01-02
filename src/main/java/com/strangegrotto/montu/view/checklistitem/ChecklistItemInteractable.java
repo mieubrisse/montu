@@ -1,10 +1,10 @@
-package com.strangegrotto.montu.view;
+package com.strangegrotto.montu.view.checklistitem;
 
 import com.google.common.base.Strings;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.AbstractInteractableComponent;
 import com.googlecode.lanterna.gui2.InteractableRenderer;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.strangegrotto.montu.view.MontuComponent;
 
 import java.util.ArrayList;
 import java.util.List;

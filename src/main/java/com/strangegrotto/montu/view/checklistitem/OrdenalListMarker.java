@@ -1,4 +1,4 @@
-package com.strangegrotto.montu.view;
+package com.strangegrotto.montu.view.checklistitem;
 
 public class OrdenalListMarker implements ListMarker {
     private final int numeral;

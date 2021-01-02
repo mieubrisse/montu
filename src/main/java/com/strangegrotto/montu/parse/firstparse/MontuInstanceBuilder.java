@@ -3,15 +3,18 @@ package com.strangegrotto.montu.parse.firstparse;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.googlecode.lanterna.gui2.Component;
+import com.googlecode.lanterna.gui2.Interactable;
 import com.strangegrotto.montu.MontuInstance;
+import com.strangegrotto.montu.controller.Controller;
 import com.strangegrotto.montu.model.Model;
-import com.strangegrotto.montu.parse.listmarkers.ListMarkerSupplier;
 import com.strangegrotto.montu.parse.render.MultipleBlockNodeRenderer;
-import com.strangegrotto.montu.view.ChecklistItemInteractable;
-import com.strangegrotto.montu.view.ListMarker;
-import com.strangegrotto.montu.view.TextComponent;
+import com.strangegrotto.montu.view.View;
+import com.strangegrotto.montu.view.checklistitem.ChecklistItemInteractable;
+import com.strangegrotto.montu.view.checklistitem.ListMarker;
+import com.strangegrotto.montu.view.text.TextComponent;
 import org.commonmark.node.Block;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -19,6 +22,8 @@ import java.util.stream.Collectors;
 public class MontuInstanceBuilder {
     // Components in their on-screen order
     private final List<UUID> componentDisplayOrder;
+
+    private final Set<UUID> interactableComponents;
 
     private final Map<UUID, Component> components;
 
@@ -32,6 +37,7 @@ public class MontuInstanceBuilder {
 
     // Tracks completable children
     private final SetMultimap<UUID, UUID> children;
+
 
 
     // This is the package class used to store information between the call to addChecklistItemComponent
@@ -51,6 +57,7 @@ public class MontuInstanceBuilder {
 
     public MontuInstanceBuilder() {
         this.componentDisplayOrder = new ArrayList<>();
+        this.interactableComponents = new HashSet<>();
         this.components = new HashMap<>();
         this.deferredChecklistComponentInfo = new HashMap<>();
         this.isCompleted = new HashMap<>();
@@ -79,6 +86,7 @@ public class MontuInstanceBuilder {
         }
         this.isCompleted.put(id, isChecked);
         this.componentDisplayOrder.add(id);
+        this.interactableComponents.add(id);
         var deferredComponentInfo = new DeferredChecklistComponentInfo(
                 indentationLevel,
                 listMarker,
@@ -100,10 +108,28 @@ public class MontuInstanceBuilder {
     }
 
     public MontuInstance build() {
-        var componentsForInstance = this.componentDisplayOrder.stream()
-                .map(id -> this.components.get(id))
-                .collect(Collectors.toList());
-        // TODO rest of components
-        return new MontuInstance(componentsForInstance);
+        var allComponents = new ArrayList<Component>();
+        var checklistItemComponentIndices = new HashSet<Integer>();
+        var isCompleteArray = new ArrayList<Boolean>();
+        for (int i = 0; i < componentDisplayOrder.size(); i++) {
+            var id = this.componentDisplayOrder.get(i);
+            var component = this.components.get(id);
+            allComponents.add(component);
+
+            if (this.interactableComponents.contains(id)) {
+                checklistItemComponentIndices.add(i);
+                isCompleteArray.add(this.isCompleted.get(id));
+            }
+        }
+
+        var view = new View(allComponents, checklistItemComponentIndices);
+        var model = new Model(view, isCompleteArray);
+        var controller = new Controller(model);
+        view.registerController(controller);
+
+        // Try and move the cursor down an item, so that it starts on the first item (if there is any)
+        model.moveCursorDownOneItem();
+
+        return new MontuInstance(view);
     }
 }
