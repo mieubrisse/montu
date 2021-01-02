@@ -59,14 +59,30 @@ public class BlockNodeRenderVisitor extends AbstractVisitor {
     @Override
     public void visit(Heading heading) {
         var resultBuilder = new StringBuilder();
-        var prefix = Strings.repeat("#", heading.getLevel());
-        resultBuilder.append(prefix + " ");
+
+        if (heading.getLevel() > 2) {
+            var prefix = Strings.repeat("#", heading.getLevel());
+            resultBuilder.append(prefix + " ");
+        }
 
         this.resultBuilder = resultBuilder;
         this.visitChildren(heading);
         var finishedStr = this.resultBuilder.toString();
 
+        this.lines.add("");
         this.lines.add(finishedStr);
+        if (heading.getLevel() == 1 || heading.getLevel() == 2) {
+            String headingDividerChar;
+            if (heading.getLevel() == 1) {
+                headingDividerChar = "=";
+            } else if (heading.getLevel() == 2) {
+                headingDividerChar = "-";
+            } else {
+                throw new BlockNodeRenderException("Encountered unknown heading level; this is a code bug");
+            }
+            var headingDivider = Strings.repeat(headingDividerChar, finishedStr.length());
+            this.lines.add(headingDivider);
+        }
         this.resultBuilder = null;  // TODO use an optional, rather than this jankiness
     }
 

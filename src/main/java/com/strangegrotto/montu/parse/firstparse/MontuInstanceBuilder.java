@@ -3,20 +3,18 @@ package com.strangegrotto.montu.parse.firstparse;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.googlecode.lanterna.gui2.Component;
-import com.googlecode.lanterna.gui2.Interactable;
 import com.strangegrotto.montu.MontuInstance;
 import com.strangegrotto.montu.controller.Controller;
 import com.strangegrotto.montu.model.Model;
 import com.strangegrotto.montu.parse.render.MultipleBlockNodeRenderer;
 import com.strangegrotto.montu.view.View;
-import com.strangegrotto.montu.view.checklistitem.ChecklistItemInteractable;
-import com.strangegrotto.montu.view.checklistitem.ListMarker;
-import com.strangegrotto.montu.view.text.TextComponent;
+import com.strangegrotto.montu.view.component.base.MontuComponent;
+import com.strangegrotto.montu.view.component.checklistitem.ChecklistItemInteractable;
+import com.strangegrotto.montu.view.component.checklistitem.ListMarker;
+import com.strangegrotto.montu.view.component.text.TextComponent;
 import org.commonmark.node.Block;
 
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.stream.Collectors;
 
 // TODO Move next to MontuInstance and make constructor private
 public class MontuInstanceBuilder {
@@ -25,7 +23,7 @@ public class MontuInstanceBuilder {
 
     private final Set<UUID> interactableComponents;
 
-    private final Map<UUID, Component> components;
+    private final Map<UUID, MontuComponent> components;
 
     private final Map<UUID, DeferredChecklistComponentInfo> deferredChecklistComponentInfo;
 
@@ -108,7 +106,7 @@ public class MontuInstanceBuilder {
     }
 
     public MontuInstance build() {
-        var allComponents = new ArrayList<Component>();
+        var allComponents = new ArrayList<MontuComponent>();
         var checklistItemComponentIndices = new HashSet<Integer>();
         var isCompleteArray = new ArrayList<Boolean>();
         for (int i = 0; i < componentDisplayOrder.size(); i++) {
@@ -127,8 +125,11 @@ public class MontuInstanceBuilder {
         var controller = new Controller(model);
         view.registerController(controller);
 
+        /*
         // Try and move the cursor down an item, so that it starts on the first item (if there is any)
         model.moveCursorDownOneItem();
+
+         */
 
         return new MontuInstance(view);
     }

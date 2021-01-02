@@ -18,8 +18,8 @@ import java.util.Set;
 
 public class App {
     // TODO replace with parameterized file
-    private static String FILEPATH = "/Users/zerix/junk/test-checklist.md";
-    // private static String FILEPATH = "/Users/zerix/gdrive/checklists-and-templates/packing-lists/planning-travel.md";
+    // private static String FILEPATH = "/Users/zerix/junk/test-checklist.md";
+    private static String FILEPATH = "/Users/zerix/gdrive/checklists-and-templates/packing-lists/planning-travel.md";
 
     private static int SUCCESS_EXIT_CODE = 0;
     private static int FAILURE_EXIT_CODE = 1;

@@ -1,7 +1,7 @@
 package com.strangegrotto.montu.parse.listmarkers;
 
-import com.strangegrotto.montu.view.checklistitem.BulletListMarker;
-import com.strangegrotto.montu.view.checklistitem.ListMarker;
+import com.strangegrotto.montu.view.component.checklistitem.BulletListMarker;
+import com.strangegrotto.montu.view.component.checklistitem.ListMarker;
 
 public class BulletListMarkerSupplier implements ListMarkerSupplier {
     private final char bullet;

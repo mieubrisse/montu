@@ -8,25 +8,37 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import com.strangegrotto.montu.controller.Controller;
-import com.strangegrotto.montu.view.checklistitem.ChecklistItemInteractable;
+import com.strangegrotto.montu.view.component.base.*;
+import com.strangegrotto.montu.view.component.checklistitem.ChecklistItemInteractable;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class View {
-    private final List<Component> components;
+    private final List<MontuComponent> components;
+    private final List<String> allComponentLines;
     private final List<ChecklistItemInteractable> checklistItems;
 
     // Because there's a necessary circular dependency between Controller -> Model -> View -> Controller,
     //  we have to break it with a non-final variable
-    private Optional<InputHandlingDelegatorWindow> windowOpt;
+    private Optional<MontuWindow> windowOpt;
 
-    public View(List<Component> components, Set<Integer> checklistItemIndices) {
+    public View(List<MontuComponent> components, Set<Integer> checklistItemIndices) {
         Preconditions.checkArgument(
                 checklistItemIndices.size() <= components.size(),
                 "Number of checklist item compnents cannot be > number of components"
         );
         this.components = components;
+
+        // Generate a list of all the component lines in sequential order, and a map of
+        //  component_index -> index_into_all_component_lines where that component's lines start
+        this.allComponentLines = new ArrayList<>();
+        this.components.stream()
+                .map(MontuComponent::getLines)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
         var checklistItems = new ArrayList<ChecklistItemInteractable>();
         for (int i = 0; i < components.size(); i++) {
             var component = components.get(i);
@@ -42,13 +54,14 @@ public class View {
     // This is the registration function to set the window, which breaks the circular dependency
     public void registerController(Controller controller) {
         // Create window to hold the panel
-        var window = new InputHandlingDelegatorWindow(controller);
+        var window = new MontuWindow(controller);
 
         // Create panel to hold components
         Panel parentPanel = new Panel(new LinearLayout());
         this.components.stream().forEach(parentPanel::addComponent);
 
         window.setComponent(parentPanel);
+        window.setHints(Set.of(Window.Hint.NO_DECORATIONS, Window.Hint.FULL_SCREEN));
 
         this.windowOpt = Optional.of(window);
     }
@@ -86,6 +99,53 @@ public class View {
         var interactableToFocus = this.checklistItems.get(index);
         var window = this.windowOpt.get();
         window.setFocusedInteractable(interactableToFocus);
+        this.centerView(index);
+    }
+
+    // Centers the view on the current focused row
+    public void centerView(int focusedItemIndex) {
+        Preconditions.checkState(this.windowOpt.isPresent(), "No controller has been registered so no window exists to center");
+        var window = this.windowOpt.get();
+        var windowSize = window.getSize();
+        var windowHeight = windowSize.getRows();
+        var rowsNeededAbove = windowHeight / 2;  // We try to put the focused item in the center of the window
+        var rowsNeededBelow = windowHeight - rowsNeededAbove;
+
+        for (int i = focusedItemIndex - 1; i >= 0; i--) {
+            var component = this.components.get(i);
+            var lines = component.getLines();
+            if (rowsNeededAbove > 0) {
+                if (rowsNeededAbove >= lines.size()) {
+                    component.setLinesFilter(new ShowAllLinesFilter());
+                    rowsNeededAbove -= lines.size();
+                } else {
+                    component.setLinesFilter(new ShowBottomNLinesFilter(rowsNeededAbove));
+                    rowsNeededAbove = 0;
+                }
+            } else {
+                component.setLinesFilter(new ShowNoLinesFilter());
+            }
+        }
+
+        // Any leftover rows from above that weren't consumed, we'll use down below
+        rowsNeededBelow += rowsNeededAbove;
+
+        for (int i = focusedItemIndex; i < this.components.size(); i++) {
+            var component = this.components.get(i);
+            var lines = component.getLines();
+            if (rowsNeededBelow > 0) {
+                if (rowsNeededBelow >= lines.size()) {
+                    component.setLinesFilter(new ShowAllLinesFilter());
+                    rowsNeededBelow -= lines.size();
+                } else {
+                    component.setLinesFilter(new ShowTopNLinesFilter(rowsNeededBelow));
+                    rowsNeededBelow = 0;
+                }
+            } else {
+                component.setLinesFilter(new ShowNoLinesFilter());
+            }
+        }
+        this.windowOpt.get().invalidate();
     }
 
     public void setChecklistItemState(int index, boolean isChecked) {

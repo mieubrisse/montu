@@ -5,10 +5,10 @@ import com.googlecode.lanterna.gui2.Interactable;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.strangegrotto.montu.controller.InputHandler;
 
-public class InputHandlingDelegatorWindow extends AbstractWindow {
+public class MontuWindow extends AbstractWindow {
     private final InputHandler delegate;
 
-    public InputHandlingDelegatorWindow(InputHandler delegate) {
+    public MontuWindow(InputHandler delegate) {
         this.delegate = delegate;
     }
 
