@@ -10,6 +10,10 @@ public class ChecklistItemInteractableRenderer
 
     @Override
     public TerminalPosition getCursorLocation(ChecklistItemInteractable component) {
+        if (!component.isVisible()) {
+            return null;
+        }
+
         var indentationStrLen = this.getIndentationStr(component).length();
         var checklistCoreOffset = component.getChecklistCoreOffset();
         return new TerminalPosition(indentationStrLen + checklistCoreOffset, 0);

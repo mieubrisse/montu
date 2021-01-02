@@ -1,6 +1,7 @@
 package com.strangegrotto.montu.controller;
 
 import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 import com.strangegrotto.montu.model.Model;
 
 public class Controller implements InputHandler {
@@ -18,6 +19,10 @@ public class Controller implements InputHandler {
 
     public boolean handleInput(KeyStroke stroke) {
         if (stroke.isAltDown() || stroke.isCtrlDown()) {
+            return true;
+        }
+
+        if (stroke.getKeyType() != KeyType.Character) {
             return true;
         }
 

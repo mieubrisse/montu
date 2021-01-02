@@ -13,6 +13,10 @@ public abstract class AbstractMontuComponentRenderer<T extends MontuComponent> i
 
     @Override
     public TerminalSize getPreferredSize(T component) {
+        if (!component.isVisible()) {
+            return new TerminalSize(0, 0);
+        }
+
         var linesWithPrefix = getLinesWithPrefix(component);
         var longestLineLenOpt = linesWithPrefix.stream()
                 .map(String::length)
@@ -25,6 +29,10 @@ public abstract class AbstractMontuComponentRenderer<T extends MontuComponent> i
 
     @Override
     public void drawComponent(TextGUIGraphics graphics, T component) {
+        if (!component.isVisible()) {
+            return;
+        }
+
         var linesWithPrefix = getLinesWithPrefix(component);
 
         var termSize = graphics.getTextGUI().getScreen().getTerminalSize();
